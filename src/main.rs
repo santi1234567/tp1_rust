@@ -1,32 +1,31 @@
 mod game;
 
+use crate::game::play_game;
 use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use crate::game::play_game;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut result = parse_args(args.clone());
-    if let Err(e) = result {
-        eprintln!("{}", e);
-        return;
-    }
-
-    let lines: Vec<String>;
-
-    match read_file(args[1].clone()) {
-        Ok(file_contents) => lines = file_contents,
+    match parse_args(args.clone()) {
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{}", e);
             return;
         }
     }
-    result = play_game(lines);
-    if let Err(e) = result {
-        eprintln!("{}", e);
-        return;
+
+    let lines: Vec<String> = match read_file(args[1].clone()) {
+        Ok(file_contents) => file_contents,
+        Err(e) => {
+            eprintln!("{}", e);
+            return;
+        }
+    };
+    match play_game(lines) {
+        Ok(res) => println!("{}", res),
+        Err(e) => eprintln!("{}", e),
     }
 }
 
