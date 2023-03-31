@@ -19,3 +19,30 @@ pub fn play_game(lines: Vec<String>) -> Result<String, String> {
         Ok("P".to_string()) // Both lose
     }
 }
+
+mod tests {
+    #[test]
+    fn test_play_game() {
+        use super::*;
+        use crate::utils::read_file;
+        assert_eq!(
+            play_game(read_file("tables/game_E.txt").unwrap()).unwrap(),
+            "E"
+        );
+
+        assert_eq!(
+            play_game(read_file("tables/game_B.txt").unwrap()).unwrap(),
+            "B"
+        );
+
+        assert_eq!(
+            play_game(read_file("tables/game_N.txt").unwrap()).unwrap(),
+            "N"
+        );
+
+        assert_eq!(
+            play_game(read_file("tables/game_P.txt").unwrap()).unwrap(),
+            "P"
+        );
+    }
+}

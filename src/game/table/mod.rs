@@ -3,10 +3,18 @@ pub mod piece;
 use crate::game::table::piece::position::Position;
 use crate::game::table::piece::{Color, Piece, PieceType};
 use std::cmp::{max, min};
+
+#[derive(PartialEq, Debug)]
 pub struct Table {
     white_piece: Piece,
     black_piece: Piece,
 }
+
+// impl PartialEq for Table {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.white_piece == other.white_piece && self.black_piece == other.black_piece
+//     }
+// }
 
 const BOARD_SIZE: usize = 8;
 
@@ -17,9 +25,9 @@ pub fn parse_table(lines: Vec<String>) -> Result<Table, String> {
     };
     if lines.len() != BOARD_SIZE {
         return Err(format!(
-            "ERROR: Table formated incorrectly. Expected {} rows, got {}",
-            BOARD_SIZE,
-            lines.len()
+            "ERROR: Table formated incorrectly. Table has {} rows, expected {}",
+            lines.len(),
+            BOARD_SIZE
         ));
     }
     for (line_number, line) in lines.iter().enumerate() {
@@ -66,7 +74,7 @@ fn parse_line(line: String, table: &mut Table, line_number: usize) -> Result<(),
                     table.white_piece.position.x = char_number;
                     table.white_piece.color = Color::White;
                 }
-                _ => return Err("ERROR: More than 1 white pieces inserted".to_string()),
+                _ => return Err("ERROR: More than one white piece inserted".to_string()),
             }
         } else if c.is_ascii_uppercase() {
             match table.black_piece.piece_type {
@@ -84,7 +92,7 @@ fn parse_line(line: String, table: &mut Table, line_number: usize) -> Result<(),
                     table.black_piece.position.x = char_number;
                     table.black_piece.color = Color::Black;
                 }
-                _ => return Err("ERROR: More than 1 black pieces inserted".to_string()),
+                _ => return Err("ERROR: More than one black piece inserted".to_string()),
             }
         } else if c != '_' {
             return Err(format!("ERROR: Invalid piece: {}", c));
@@ -283,4 +291,129 @@ fn check_move_p_black(attacker_position: &Position, other_position: &Position) -
         return true;
     }
     false
+}
+
+mod tests {
+    use super::*;
+    use crate::game::table::piece::Piece;
+    use crate::utils::read_file;
+    #[allow(dead_code)]
+    fn setup_parse_table_test(file_path: &str) -> Vec<String> {
+        match read_file(file_path) {
+            Ok(file_contents) => file_contents,
+            Err(e) => {
+                println!("{}", e);
+                panic!();
+            }
+        }
+    }
+    #[test]
+    fn test_parse_table() {
+        let lines = setup_parse_table_test("tables/no_white.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some("ERROR: No white piece inserted".to_string())
+        );
+
+        let lines = setup_parse_table_test("tables/no_black.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some("ERROR: No black piece inserted".to_string())
+        );
+
+        let lines = setup_parse_table_test("tables/invalid_piece.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some("ERROR: Invalid piece: x".to_string())
+        );
+
+        let lines = setup_parse_table_test("tables/invalid_table_format_chars.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some(
+                "ERROR: Table formated incorrectly. Row number 4 has 17 characters, expected 15"
+                    .to_string()
+            )
+        );
+
+        let lines = setup_parse_table_test("tables/invalid_table_format_rows.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some("ERROR: Table formated incorrectly. Table has 9 rows, expected 8".to_string())
+        );
+
+        let lines = setup_parse_table_test("tables/2_black.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some("ERROR: More than one black piece inserted".to_string())
+        );
+
+        let lines = setup_parse_table_test("tables/2_white.txt");
+
+        assert!(parse_table(lines.clone()).is_err());
+        assert_eq!(
+            parse_table(lines).err(),
+            Some("ERROR: More than one white piece inserted".to_string())
+        );
+
+        let lines = setup_parse_table_test("tables/d.txt");
+
+        assert!(parse_table(lines.clone()).is_ok());
+        assert_eq!(
+            parse_table(lines).unwrap(),
+            Table {
+                white_piece: Piece {
+                    color: Color::White,
+                    position: Position { x: 5, y: 7 },
+                    piece_type: PieceType::D
+                },
+                black_piece: Piece {
+                    color: Color::Black,
+                    position: Position { x: 5, y: 1 },
+                    piece_type: PieceType::T
+                }
+            }
+        );
+    }
+    #[allow(dead_code)]
+    fn setup_move_test(file_path: &str) -> Table {
+        let lines = setup_parse_table_test(file_path);
+        parse_table(lines).unwrap()
+    }
+
+    #[test]
+    fn test_moves() {
+        let mut table = setup_move_test("tables/d.txt");
+        assert_eq!(check_moves(&table), (true, true));
+
+        table = setup_move_test("tables/r.txt");
+        assert_eq!(check_moves(&table), (true, true));
+
+        table = setup_move_test("tables/a.txt");
+        assert_eq!(check_moves(&table), (true, false));
+
+        table = setup_move_test("tables/c.txt");
+        assert_eq!(check_moves(&table), (true, false));
+
+        table = setup_move_test("tables/t.txt");
+        assert_eq!(check_moves(&table), (true, true));
+
+        table = setup_move_test("tables/p.txt");
+        assert_eq!(check_moves(&table), (true, true));
+
+        table = setup_move_test("tables/p_border.txt");
+        assert_eq!(check_moves(&table), (false, false));
+    }
 }
