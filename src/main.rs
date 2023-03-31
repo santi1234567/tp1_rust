@@ -1,10 +1,9 @@
 mod game;
+mod utils;
 
 use crate::game::play_game;
+use crate::utils::read_file;
 use std::env;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -41,18 +40,4 @@ fn parse_args(args: Vec<String>) -> Result<(), String> {
     }
 
     Ok(())
-}
-
-fn read_file(file_name: impl AsRef<Path>) -> Result<Vec<String>, String> {
-    let file = File::open(file_name);
-    if let Err(e) = file {
-        return Err(format!("ERROR: {}", e));
-    }
-    let file = file.unwrap();
-    let reader = BufReader::new(file);
-    let lines = reader
-        .lines()
-        .map(|l| l.expect("Could not parse line"))
-        .collect();
-    Ok(lines)
 }
