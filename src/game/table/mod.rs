@@ -295,7 +295,6 @@ fn check_move_p_black(attacker_position: &Position, other_position: &Position) -
 
 mod tests {
     use super::*;
-    use crate::game::table::piece::Piece;
     use crate::utils::read_file;
     #[allow(dead_code)]
     fn setup_parse_table_test(file_path: &str) -> Vec<String> {
