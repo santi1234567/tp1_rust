@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-pub fn read_file(file_name: impl AsRef<Path>) -> Result<Vec<String>, String> {
+pub fn read_file(file_name: &impl AsRef<Path>) -> Result<Vec<String>, String> {
     let file = File::open(file_name);
     if let Err(e) = file {
         return Err(format!("ERROR: {}", e));
@@ -22,7 +22,7 @@ mod tests {
 
     #[test]
     fn test_read_file() {
-        let lines = match read_file("tables/no_white.txt") {
+        let lines = match read_file(&"tables/no_white.txt") {
             Ok(file_contents) => file_contents,
             Err(e) => {
                 println!("{}", e);

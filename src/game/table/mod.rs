@@ -18,7 +18,7 @@ pub struct Table {
 
 const BOARD_SIZE: usize = 8;
 
-pub fn parse_table(lines: Vec<String>) -> Result<Table, String> {
+pub fn parse_table(lines: &Vec<String>) -> Result<Table, String> {
     let mut table = Table {
         white_piece: Piece::new(),
         black_piece: Piece::new(),
@@ -293,50 +293,50 @@ fn check_move_p_black(attacker_position: &Position, other_position: &Position) -
     false
 }
 
+#[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::utils::read_file;
-    #[allow(dead_code)]
-    fn setup_parse_table_test(file_path: &str) -> Vec<String> {
-        match read_file(file_path) {
-            Ok(file_contents) => file_contents,
-            Err(e) => {
-                println!("{}", e);
-                panic!();
-            }
-        }
-    }
     #[test]
     fn test_parse_table() {
-        let lines = setup_parse_table_test("tables/no_white.txt");
+        use super::*;
+        use crate::utils::read_file;
+        fn setup_parse_table_test(file_path: &str) -> Vec<String> {
+            match read_file(&file_path) {
+                Ok(file_contents) => file_contents,
+                Err(e) => {
+                    println!("{}", e);
+                    panic!();
+                }
+            }
+        }
+        let mut lines = setup_parse_table_test("tables/no_white.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some("ERROR: No white piece inserted".to_string())
         );
 
-        let lines = setup_parse_table_test("tables/no_black.txt");
+        lines = setup_parse_table_test("tables/no_black.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some("ERROR: No black piece inserted".to_string())
         );
 
         let lines = setup_parse_table_test("tables/invalid_piece.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some("ERROR: Invalid piece: x".to_string())
         );
 
         let lines = setup_parse_table_test("tables/invalid_table_format_chars.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some(
                 "ERROR: Table formated incorrectly. Row number 4 has 17 characters, expected 15"
                     .to_string()
@@ -345,33 +345,33 @@ mod tests {
 
         let lines = setup_parse_table_test("tables/invalid_table_format_rows.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some("ERROR: Table formated incorrectly. Table has 9 rows, expected 8".to_string())
         );
 
         let lines = setup_parse_table_test("tables/2_black.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some("ERROR: More than one black piece inserted".to_string())
         );
 
         let lines = setup_parse_table_test("tables/2_white.txt");
 
-        assert!(parse_table(lines.clone()).is_err());
+        assert!(parse_table(&lines).is_err());
         assert_eq!(
-            parse_table(lines).err(),
+            parse_table(&lines).err(),
             Some("ERROR: More than one white piece inserted".to_string())
         );
 
         let lines = setup_parse_table_test("tables/d.txt");
 
-        assert!(parse_table(lines.clone()).is_ok());
+        assert!(parse_table(&lines).is_ok());
         assert_eq!(
-            parse_table(lines).unwrap(),
+            parse_table(&lines).unwrap(),
             Table {
                 white_piece: Piece {
                     color: Color::White,
@@ -386,14 +386,24 @@ mod tests {
             }
         );
     }
-    #[allow(dead_code)]
-    fn setup_move_test(file_path: &str) -> Table {
-        let lines = setup_parse_table_test(file_path);
-        parse_table(lines).unwrap()
-    }
 
     #[test]
     fn test_moves() {
+        use super::*;
+        use crate::utils::read_file;
+        fn setup_parse_table_test(file_path: &str) -> Vec<String> {
+            match read_file(&file_path) {
+                Ok(file_contents) => file_contents,
+                Err(e) => {
+                    println!("{}", e);
+                    panic!();
+                }
+            }
+        }
+        fn setup_move_test(file_path: &str) -> Table {
+            let lines = setup_parse_table_test(file_path);
+            parse_table(&lines).unwrap()
+        }
         let mut table = setup_move_test("tables/d.txt");
         assert_eq!(check_moves(&table), (true, true));
 

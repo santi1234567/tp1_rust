@@ -7,7 +7,7 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    match parse_args(args.clone()) {
+    match parse_args(&args) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{}", e);
@@ -15,7 +15,7 @@ fn main() {
         }
     }
 
-    let lines: Vec<String> = match read_file(args[1].clone()) {
+    let lines: Vec<String> = match read_file(&args[1]) {
         Ok(file_contents) => file_contents,
         Err(e) => {
             eprintln!("{}", e);
@@ -28,7 +28,7 @@ fn main() {
     }
 }
 
-fn parse_args(args: Vec<String>) -> Result<(), String> {
+fn parse_args(args: &Vec<String>) -> Result<(), String> {
     if args.len() < 2 {
         return Err("ERROR: Not enough arguments".to_string());
     }
