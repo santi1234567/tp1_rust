@@ -3,21 +3,31 @@ pub mod piece;
 use crate::game::table::piece::position::Position;
 use crate::game::table::piece::{Color, Piece, PieceType};
 use std::cmp::{max, min};
+const BOARD_SIZE: usize = 8;
 
+/// A struct representing a table with a white and a black piece.
 #[derive(PartialEq, Debug)]
 pub struct Table {
+    /// The white piece on the table.
     white_piece: Piece,
+    /// The black piece on the table.
     black_piece: Piece,
 }
 
-// impl PartialEq for Table {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.white_piece == other.white_piece && self.black_piece == other.black_piece
-//     }
-// }
-
-const BOARD_SIZE: usize = 8;
-
+/// Parses a vector of strings representing a chessboard into a `Table` struct.
+///
+/// # Arguments
+///
+/// * `lines` - A vector of strings representing a chessboard.
+///
+/// # Errors
+///
+/// Returns an error if:
+///
+/// * The number of rows in the input `lines` vector is not equal to `BOARD_SIZE`.
+/// * One or both of the white and black pieces are not inserted into the table.
+///
+///
 pub fn parse_table(lines: &Vec<String>) -> Result<Table, String> {
     let mut table = Table {
         white_piece: Piece::new(),
@@ -44,6 +54,28 @@ pub fn parse_table(lines: &Vec<String>) -> Result<Table, String> {
     Ok(table)
 }
 
+/// Parses a single line of the game board and updates the `table` with any pieces found on the line.
+///
+/// # Arguments
+///
+/// * `line` - The line to parse.
+/// * `table` - A mutable reference to the game board `Table`.
+/// * `line_number` - The line number of the `line` argument.
+///
+/// # Returns
+///
+/// * `Ok(())` if the line was parsed successfully.
+/// * `Err(String)` if there was an error parsing the line. The `Err` variant will contain a string describing the error.
+///
+/// # Errors
+///
+/// This function will return an error in the following cases:
+///
+/// * The length of the `line` argument is not equal to `BOARD_SIZE * 2 - 1`.
+/// * A piece found on the line is not a single character.
+/// * A character found on the line is not valid.
+/// * More than one white piece or black piece is inserted.
+///
 fn parse_line(line: String, table: &mut Table, line_number: usize) -> Result<(), String> {
     if line.len() != BOARD_SIZE * 2 - 1 {
         return Err(format!(
@@ -57,7 +89,13 @@ fn parse_line(line: String, table: &mut Table, line_number: usize) -> Result<(),
         if word.len() != 1 {
             return Err(format!("ERROR: Invalid piece: {}", word));
         }
-        let c = word.chars().next().unwrap();
+        let c = match word.chars().next() {
+            Some(c) => c,
+            None => {
+                return Err(format!("ERROR: couldn't extract piece from word: {}", word));
+            }
+        };
+
         if c.is_ascii_lowercase() {
             match table.white_piece.piece_type {
                 PieceType::Empty => {
@@ -101,6 +139,18 @@ fn parse_line(line: String, table: &mut Table, line_number: usize) -> Result<(),
     Ok(())
 }
 
+/// Checks if both of the pieces in the table can capture each other.
+///
+/// # Arguments
+///
+/// * `table` - A reference to the `Table` struct containing the pieces.
+///
+/// # Returns
+///
+/// A tuple containing two `bool` values. The first element indicates whether the white piece
+/// can attack the black piece, and the second element indicates whether the black piece can
+/// attack the white piece.
+///
 pub fn check_moves(table: &Table) -> (bool, bool) {
     let white_piece = &table.white_piece;
     let black_piece = &table.black_piece;
@@ -111,6 +161,17 @@ pub fn check_moves(table: &Table) -> (bool, bool) {
     )
 }
 
+/// Checks if a given attacking piece can capture another piece.
+///
+/// The function takes two arguments, `attacker` and `other`, which are references to the `Piece`
+/// struct representing the attacking piece and the other piece respectively. The function returns
+/// `true` if the attacking piece can capture the other piece, and `false` otherwise.
+///
+/// # Arguments
+///
+/// * `attacker` - A reference to the `Piece` struct representing the attacking piece.
+/// * `other` - A reference to the `Piece` struct representing the other piece.
+///
 fn check_move_piece(attacker: &Piece, other: &Piece) -> bool {
     match attacker.piece_type {
         PieceType::R => check_move_r(&attacker.position, &other.position),
@@ -123,6 +184,24 @@ fn check_move_piece(attacker: &Piece, other: &Piece) -> bool {
     }
 }
 
+/// Checks if a king can capture another piece.
+///
+/// The input `attacker_position` is the position of the king, and the input `other_position`
+/// is the position of the other piece. The function returns `true` if the king can capture
+/// the other piece.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the king on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// * `true` - If the king can capture the other piece.
+///
+/// * `false` - If the king cannot capture the other piece.
+///
 fn check_move_r(attacker_position: &Position, other_position: &Position) -> bool {
     for i in attacker_position.x - 1..=attacker_position.x + 1 {
         for j in attacker_position.y - 1..=attacker_position.y + 1 {
@@ -134,11 +213,47 @@ fn check_move_r(attacker_position: &Position, other_position: &Position) -> bool
     false
 }
 
+/// Checks if a queen can capture another piece.
+///
+/// The input `attacker_position` is the position of the queen, and the input `other_position`
+/// is the position of the other piece. The function returns `true` if the queen can capture
+/// the other piece.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the queen on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// * `true` - If the queen can capture the other piece.
+///
+/// * `false` - If the queen cannot capture the other piece.
+///
 fn check_move_d(attacker_position: &Position, other_position: &Position) -> bool {
     check_move_a(attacker_position, other_position)
         || check_move_t(attacker_position, other_position)
 }
 
+/// Checks if a bishop can capture another piece.
+///
+/// The input `attacker_position` is the position of the bishop, and the input `other_position`
+/// is the position of the other piece. The function returns `true` if the bishop can capture
+/// the other piece.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the bishop on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// * `true` - If the bishop can capture the other piece.
+///
+/// * `false` - If the bishop cannot capture the other piece.
+///
 fn check_move_a(attacker_position: &Position, other_position: &Position) -> bool {
     // Diagonal moves
 
@@ -180,6 +295,24 @@ fn check_move_a(attacker_position: &Position, other_position: &Position) -> bool
     false
 }
 
+/// Checks if a rook can capture another piece.
+///
+/// The input `attacker_position` is the position of the rook, and the input `other_position`
+/// is the position of the other piece. The function returns `true` if the rook can capture
+/// the other piece.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the rook on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// * `true` - If the rook can capture the other piece.
+///
+/// * `false` - If the rook cannot capture the other piece.
+///
 fn check_move_t(attacker_position: &Position, other_position: &Position) -> bool {
     // Horizontal and vertical moves
     if attacker_position.x == other_position.x || attacker_position.y == other_position.y {
@@ -188,6 +321,24 @@ fn check_move_t(attacker_position: &Position, other_position: &Position) -> bool
     false
 }
 
+/// Checks if a knight can capture another piece.
+///
+/// The input `attacker_position` is the position of the knight, and the input `other_position`
+/// is the position of the other piece. The function returns `true` if the knight can capture
+/// the other piece.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the knight on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// * `true` - If the knight can capture the other piece.
+///
+/// * `false` - If the knight cannot capture the other piece.
+///
 fn check_move_c(attacker_position: &Position, other_position: &Position) -> bool {
     // Top left
 
@@ -248,6 +399,24 @@ fn check_move_c(attacker_position: &Position, other_position: &Position) -> bool
     false
 }
 
+/// Checks if a given pawn piece can capture another piece.
+///
+/// The input attacker is the pawn piece which wants to capture the other piece, and the input other
+/// is the other piece on the board. The function returns true if the pawn piece can capture
+/// the other piece.
+///
+/// # Arguments
+///
+/// * attacker - The pawn piece which wants to capture the other piece.
+///
+/// * other - The other piece on the board.
+///
+/// # Returns
+///
+/// * true - If the pawn piece can capture the other piece.
+///
+/// * false - If the pawn piece cannot capture the other piece.
+///
 fn check_move_p(attacker: &Piece, other: &Piece) -> bool {
     // Pawn moves
     match attacker.color {
@@ -257,6 +426,22 @@ fn check_move_p(attacker: &Piece, other: &Piece) -> bool {
     }
 }
 
+/// Checks if a white pawn can capture another piece.
+///
+/// The function takes two arguments: `attacker_position`, which is the position of the white pawn,
+/// and `other_position`, which is the position of the other piece. The function returns `true` if
+/// the white pawn can capture the other piece, and `false` otherwise.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the white pawn on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// Returns `true` if the white pawn can capture the other piece, and `false` otherwise.
+///
 fn check_move_p_white(attacker_position: &Position, other_position: &Position) -> bool {
     // White pawn moves
 
@@ -275,9 +460,23 @@ fn check_move_p_white(attacker_position: &Position, other_position: &Position) -
     false
 }
 
+/// Checks if a black pawn can capture another piece.
+///
+/// The function takes two arguments: `attacker_position`, which is the position of the black pawn,
+/// and `other_position`, which is the position of the other piece. The function returns `true` if
+/// the black pawn can capture the other piece, and `false` otherwise.
+///
+/// # Arguments
+///
+/// * `attacker_position` - The position of the black pawn on the board.
+///
+/// * `other_position` - The position of the other piece.
+///
+/// # Returns
+///
+/// Returns `true` if the black pawn can capture the other piece, and `false` otherwise.
+///
 fn check_move_p_black(attacker_position: &Position, other_position: &Position) -> bool {
-    // Black pawn moves
-
     if (attacker_position.x > 0
         && attacker_position.x < BOARD_SIZE - 1
         && attacker_position.y < BOARD_SIZE - 1
