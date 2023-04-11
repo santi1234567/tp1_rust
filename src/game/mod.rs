@@ -2,6 +2,24 @@ mod table;
 
 use crate::game::table::{check_moves, parse_table};
 
+/// Plays a game of chess as described by the input `lines`, and returns the result of the game.
+///
+/// The input `lines` should be a vector of strings, where each string represents a row of the chess board.
+///
+/// # Arguments
+///
+/// * `lines` - A vector of strings representing the chess board.
+///
+/// # Returns
+///
+/// * `Ok(String)` - The result of the game, which can be one of the following values:
+///   * "E" - Draw
+///   * "B" - White wins
+///   * "N" - Black wins
+///   * "P" - Both lose
+///
+/// * `Err(String)` - An error message.
+///
 pub fn play_game(lines: Vec<String>) -> Result<String, String> {
     let table = match parse_table(&lines) {
         Ok(t) => t,

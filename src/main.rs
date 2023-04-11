@@ -28,6 +28,22 @@ fn main() {
     }
 }
 
+/// Parses the command-line arguments passed to the program and ensures that they are valid.
+///
+/// The input `args` should be a vector of strings containing the command-line arguments.
+///
+/// Checks if only one argument was passed and if it is a .txt file. If not, returns an error.
+///
+/// # Arguments
+///
+/// * `args` - A vector of strings containing the command-line arguments.
+///
+/// # Returns
+///
+/// * `Ok(())` - If the command-line arguments are valid.
+///
+/// * `Err(String)` - An error message describing why the command-line arguments are invalid.
+///
 fn parse_args(args: &Vec<String>) -> Result<(), String> {
     if args.len() < 2 {
         return Err("ERROR: Not enough arguments".to_string());
