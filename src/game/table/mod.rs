@@ -369,13 +369,15 @@ fn check_move_c(attacker_position: &Position, other_position: &Position) -> bool
     }
 
     // Bottom left
-
+    if attacker_position.x > 1 && attacker_position.y < BOARD_SIZE - 2 {
+        println!("{} {}", attacker_position.x - 2, attacker_position.y + 1)
+    }
     if (attacker_position.x > 0
-        && attacker_position.y < BOARD_SIZE - 1
+        && attacker_position.y < BOARD_SIZE - 2
         && attacker_position.x - 1 == other_position.x
         && attacker_position.y + 2 == other_position.y)
         || (attacker_position.x > 1
-            && attacker_position.y < BOARD_SIZE - 2
+            && attacker_position.y < BOARD_SIZE - 1
             && attacker_position.x - 2 == other_position.x
             && attacker_position.y + 1 == other_position.y)
     {
@@ -385,11 +387,11 @@ fn check_move_c(attacker_position: &Position, other_position: &Position) -> bool
     // Bottom right
 
     if (attacker_position.x < BOARD_SIZE - 1
-        && attacker_position.y < BOARD_SIZE - 1
+        && attacker_position.y < BOARD_SIZE - 2
         && attacker_position.x + 1 == other_position.x
         && attacker_position.y + 2 == other_position.y)
         || (attacker_position.x < BOARD_SIZE - 2
-            && attacker_position.y < BOARD_SIZE - 2
+            && attacker_position.y < BOARD_SIZE - 1
             && attacker_position.x + 2 == other_position.x
             && attacker_position.y + 1 == other_position.y)
     {
@@ -614,6 +616,9 @@ mod tests {
 
         table = setup_move_test("tables/c.txt");
         assert_eq!(check_moves(&table), (true, false));
+
+        table = setup_move_test("tables/c_border.txt");
+        assert_eq!(check_moves(&table), (true, true));
 
         table = setup_move_test("tables/t.txt");
         assert_eq!(check_moves(&table), (true, true));
