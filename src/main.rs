@@ -10,7 +10,7 @@ fn main() {
     match parse_args(&args) {
         Ok(_) => {}
         Err(e) => {
-            eprintln!("{}", e);
+            println!("{}", e);
             return;
         }
     }
@@ -18,13 +18,13 @@ fn main() {
     let lines: Vec<String> = match read_file(&args[1]) {
         Ok(file_contents) => file_contents,
         Err(e) => {
-            eprintln!("{}", e);
+            println!("{}", e);
             return;
         }
     };
     match play_game(lines) {
         Ok(res) => println!("{}", res),
-        Err(e) => eprintln!("{}", e),
+        Err(e) => println!("{}", e),
     }
 }
 
